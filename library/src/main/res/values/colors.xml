@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="white">#fff</color>
+    <color name="gray_80">#808080</color>
+    <color name="gray_a0">#a0a0a0</color>
+    <color name="gray_b0">#b0b0b0</color>
+    <color name="gray_c0">#c0c0c0</color>
+    <color name="gray_d0">#d0d0d0</color>
+    <color name="gray_e0">#e0e0e0</color>
+    <color name="gray_f0">#f0f0f0</color>
+    <color name="gray_f1">#E9EAEA</color>
+    <color name="gray_77">#777777</color>
+    <color name="light_gray">#F2F3F5</color>
+    <color name="btn_normal">#ff9900</color>
+</resources>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/bg_friend_circle_add" android:state_enabled="false"/>
+    <item android:drawable="@drawable/public_btn_bg_queding" android:state_enabled="true"/>
+</selector>
