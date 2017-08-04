@@ -1,12 +1,12 @@
 package com.gersion.library.adapter;
 
 import android.support.v7.widget.RecyclerView;
+import android.widget.CheckBox;
 
-import com.gersion.library.listener.Filter;
-import com.gersion.library.listener.OnItemClickListener;
-import com.gersion.library.multitype.MultiTypeAdapter;
+import com.gersion.library.inter.Filter;
+import com.gersion.library.multitype.adapter.MultiTypeAdapter;
+import com.gersion.library.multitype.viewholder.BaseViewHolder;
 import com.gersion.library.smartrecycleview.IRVAdapter;
-import com.gersion.library.viewholder.BaseViewHolder;
 
 import java.util.List;
 
@@ -14,21 +14,21 @@ import java.util.List;
  * Created by gersy on 2017/7/25.
  */
 
-public class ShowMultiAdapter extends MultiTypeAdapter<Filter,BaseViewHolder<Filter>> implements IRVAdapter<Filter> {
+public abstract class BaseMultiAdapter<T extends Filter> extends MultiTypeAdapter<T,BaseViewHolder<Filter>> implements IRVAdapter<Filter> {
 
     private int mTotalCount;
-    private OnItemClickListener mListener;
+    private CheckBox mCheckBox;
 
     @Override
     public RecyclerView.Adapter getAdapter() {
         return this;
     }
 
-    public List<Filter> getList() {
+    public List<T> getList() {
         return items;
     }
 
-    public List<Filter> getSelectionList() {
+    public List<T> getSelectionList() {
         return mSelectionList;
     }
 
@@ -45,8 +45,8 @@ public class ShowMultiAdapter extends MultiTypeAdapter<Filter,BaseViewHolder<Fil
         notifyDataSetChanged();
     }
 
-    public void updateItem(Filter bean){
-        for (Filter friendDataBean : items) {
+    public void updateItem(T bean){
+        for (T friendDataBean : items) {
             if (friendDataBean==bean){
                 friendDataBean.setSelected(false);
             }
@@ -54,7 +54,7 @@ public class ShowMultiAdapter extends MultiTypeAdapter<Filter,BaseViewHolder<Fil
         notifyDataSetChanged();
     }
 
-    public Filter getItem(int position){
+    public T getItem(int position){
         return items.get(position);
     }
 
@@ -83,11 +83,15 @@ public class ShowMultiAdapter extends MultiTypeAdapter<Filter,BaseViewHolder<Fil
     }
 
     @Override
-    public List<Filter> getData() {
+    public List getData() {
         return items;
     }
 
-    public void setOnItemClickListener(OnItemClickListener listener){
-        mListener = listener;
-    }
+
+
+    @Override
+    protected abstract void convert(BaseViewHolder helper, T item);
+
+    @Override
+    protected abstract CheckBox getCheckBox();
 }

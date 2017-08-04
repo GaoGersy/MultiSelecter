@@ -27,6 +27,11 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     />
+            <View
+                    android:visibility="gone"
+                    android:id="@+id/placeholder"
+                    android:layout_width="45dp"
+                    android:layout_height="wrap_content"/>
             <EditText
                     android:layout_gravity="bottom"
                     android:layout_marginBottom="5dp"
@@ -110,7 +115,21 @@
     </LinearLayout>
     <ImageView
             android:visibility="gone"
-            android:id="@+id/float_img"
+            android:id="@+id/float_img_1"
+            android:src="@mipmap/ic_launcher_round"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            />
+    <ImageView
+            android:visibility="gone"
+            android:id="@+id/float_img_2"
+            android:src="@mipmap/ic_launcher_round"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            />
+    <ImageView
+            android:visibility="gone"
+            android:id="@+id/float_img_3"
             android:src="@mipmap/ic_launcher_round"
             android:layout_width="40dp"
             android:layout_height="40dp"

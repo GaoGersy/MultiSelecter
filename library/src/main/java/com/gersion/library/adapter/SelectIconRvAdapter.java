@@ -9,9 +9,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.gersion.library.R;
-import com.gersion.library.listener.Filter;
-import com.gersion.library.listener.OnItemClickListener;
-import com.gersion.library.listener.OnLastItemLoadListener;
+import com.gersion.library.inter.Filter;
+import com.gersion.library.inter.OnItemClickListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,62 +19,62 @@ public class SelectIconRvAdapter extends RecyclerView.Adapter<SelectIconRvAdapte
 
     private List<Filter> itemFilters = new ArrayList<>();
     private OnItemClickListener mListener;
-    private int[] loaction = new int[2];
-    private View mLastView;
-    private OnLastItemLoadListener mOnLastItemLoadListener;
 
 
     public void setItemFilters(@NonNull List<Filter> itemFilters) {
         this.itemFilters = itemFilters;
     }
 
-    public int add(Filter bean){
+    public int add(Filter bean) {
         itemFilters.add(bean);
         int i = itemFilters.size() - 1;
         notifyItemChanged(i);
         return i;
     }
 
-    public void remove(Filter bean){
+    public void remove(Filter bean) {
         itemFilters.remove(bean);
         notifyDataSetChanged();
     }
 
-    public void remove(int position){
+    public void remove(int position) {
         itemFilters.remove(position);
-        notifyDataSetChanged();
+        notifyItemChanged(position);
     }
 
-    public void addAllData(List<Filter> data){
+    public void addAllData(List<Filter> data) {
         itemFilters.clear();
         itemFilters.addAll(data);
         notifyDataSetChanged();
     }
 
-    public void addAll(List<Filter> data){
+    public void addAll(List<Filter> data) {
         itemFilters.addAll(data);
         notifyDataSetChanged();
     }
 
-    public void clear(){
+    public void clear() {
         itemFilters.clear();
         notifyDataSetChanged();
     }
 
-    public void setData(List<Filter> data){
+    public void setData(List<Filter> data) {
         itemFilters = data;
         notifyDataSetChanged();
     }
 
-    public View getLastView(){
-        return mLastView;
+
+    public void addHiddenItem(Filter bean) {
+        itemFilters.add(bean);
+        int i = itemFilters.size() - 1;
+        notifyItemChanged(i);
     }
 
     public Filter getItem(int position) {
         return itemFilters.get(position);
     }
 
-    public List<Filter> getList(){
+    public List<Filter> getList() {
         return itemFilters;
     }
 
@@ -83,7 +82,7 @@ public class SelectIconRvAdapter extends RecyclerView.Adapter<SelectIconRvAdapte
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-            .inflate(R.layout.item_icon, parent, false);
+                .inflate(R.layout.item_icon, parent, false);
         return new ViewHolder(view);
     }
 
@@ -91,17 +90,8 @@ public class SelectIconRvAdapter extends RecyclerView.Adapter<SelectIconRvAdapte
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         Filter itemFilter = itemFilters.get(position);
-//        holder.cover.setImageResource(itemFilter.coverResId);
-//        holder.title.setText(itemFilter.title);
         holder.setOnItemClickListener(mListener);
-        holder.setData(itemFilter,position);
-        if (position==getItemCount()-1){
-            View itemView = holder.getItemView();
-            mLastView = itemView.findViewById(R.id.icon);
-            if (mOnLastItemLoadListener!=null){
-                mOnLastItemLoadListener.onLastLoaded(mLastView);
-            }
-        }
+        holder.setData(itemFilter, position);
     }
 
 
@@ -122,36 +112,35 @@ public class SelectIconRvAdapter extends RecyclerView.Adapter<SelectIconRvAdapte
 
         ViewHolder(View itemView) {
             super(itemView);
-//            cover = (ImageView) itemView.findViewById(R.id.cover);
+            cover = itemView.findViewById(R.id.icon);
 //            title = (TextView) itemView.findViewById(R.id.title);
 
 
         }
 
-        public void setData(final Filter data, int position){
+        public void setData(final Filter data, int position) {
             itemView.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) {
-                    if (mListener!=null){
-                        mListener.onItemClick(v,data,false);
+                @Override
+                public void onClick(View v) {
+                    if (mListener != null) {
+                        mListener.onItemClick(v, data, false);
                     }
                 }
             });
+            cover.setImageResource(data.getImageResource());
 
         }
 
-        public View getItemView(){
+        public View getItemView() {
             return itemView;
         }
 
-        public void setOnItemClickListener(OnItemClickListener listener){
+        public void setOnItemClickListener(OnItemClickListener listener) {
             mListener = listener;
         }
     }
 
-    public void setOnItemClickListener(OnItemClickListener listener){
+    public void setOnItemClickListener(OnItemClickListener listener) {
         mListener = listener;
-    }
-    public void setOnLastItemLoadListenr(OnLastItemLoadListener listener){
-        mOnLastItemLoadListener = listener;
     }
 }

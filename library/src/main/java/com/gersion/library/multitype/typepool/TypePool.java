@@ -14,19 +14,25 @@
  * limitations under the License.
  */
 
-package com.gersion.library.multitype;
+package com.gersion.library.multitype.typepool;
 
-import android.support.annotation.NonNull;
-
-import com.gersion.library.multitype.inter.Linker;
+import android.support.v7.widget.RecyclerView;
+import android.view.ViewGroup;
 
 /**
+ * An ordered collection to hold the types, binders and linkers.
+ *
  * @author drakeet
  */
-final class DefaultLinker<T> implements Linker<T> {
+public interface TypePool {
 
-    @Override
-    public int index(@NonNull T t) {
-        return 0;
-    }
+    void register(Class clazz, int layouId);
+
+    void register(int layoutId);
+
+    RecyclerView.ViewHolder getViewHolder(ViewGroup parent, int itemType);
+
+    int getItemType(Class clazz);
+
+    int getItemType(int layoutId);
 }

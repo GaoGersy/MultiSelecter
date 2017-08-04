@@ -8,8 +8,14 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,23 +27,24 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.gersion.library.R;
+import com.gersion.library.adapter.BaseMultiAdapter;
 import com.gersion.library.adapter.SelectIconRvAdapter;
-import com.gersion.library.adapter.ShowMultiAdapter;
-import com.gersion.library.listener.Filter;
-import com.gersion.library.listener.OnItemClickListener;
-import com.gersion.library.multitype.ItemViewBinder;
+import com.gersion.library.bean.FloatImgBean;
+import com.gersion.library.inter.Filter;
+import com.gersion.library.inter.OnItemClickListener;
+import com.gersion.library.multitype.typepool.TypePool;
 import com.gersion.library.smartrecycleview.SmartRecycleView;
 import com.gersion.library.utils.ScreenUtils;
 import com.gersion.library.utils.SizeUtils;
-import com.gersion.library.viewholder.BaseViewHolder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by gersy on 2017/7/25.
  */
 
-public abstract class SelectionFragment extends Fragment {
+public class SelectionFragment extends Fragment {
     private Activity activity;
     private View mView;
     private LinearLayout mContainer;
@@ -51,13 +58,19 @@ public abstract class SelectionFragment extends Fragment {
     private List<Filter> mSelectList;
     private TextView mTvConfirm;
     private int mMaxWidth;
-    private ShowMultiAdapter mAdapter;
+    private BaseMultiAdapter mAdapter;
     private List<Filter> mData;
-    private ImageView mFloatImg;
+    private ImageView mFloatImg_1;
     private int mStartX;
     private int mStartY;
     private FrameLayout mFlContainer;
     private View mSourceView;
+    private TypePool mTypePool;
+    private ImageView mFloatImg_2;
+    private ImageView mFloatImg_3;
+    private List<FloatImgBean> mImagePool = new ArrayList<>();
+    private List<Filter> mMatchList = new ArrayList<>();
+    private View mPlaceHolder;
 
     @Override
     public void onAttach(Context context) {
@@ -85,17 +98,38 @@ public abstract class SelectionFragment extends Fragment {
         mLlSelectAll = findView(R.id.ll_select_all);
         mIvSelectAll = findView(R.id.iv_select_all);
         mTvConfirm = findView(R.id.tv_confirm);
-        mFloatImg = findView(R.id.float_img);
+        mFloatImg_1 = findView(R.id.float_img_1);
+        mFloatImg_2 = findView(R.id.float_img_2);
+        mFloatImg_3 = findView(R.id.float_img_3);
         mFlContainer = findView(R.id.fl_container);
+        mPlaceHolder = findView(R.id.placeholder);
 
 //        int[] location = new int[2];
 //        mContainer.getLocationOnScreen(location);
 //        mStartX = location[0];
 //        mStartY = location[1];
+        FloatImgBean bean1 = new FloatImgBean();
+        bean1.mImageView = mFloatImg_1;
+        FloatImgBean bean2 = new FloatImgBean();
+        bean2.mImageView = mFloatImg_2;
+        FloatImgBean bean3 = new FloatImgBean();
+        bean3.mImageView = mFloatImg_3;
+        mImagePool.add(bean1);
+        mImagePool.add(bean2);
+        mImagePool.add(bean3);
 
         int screenWidth = ScreenUtils.getScreenWidth(activity);
         mMaxWidth = screenWidth * 2 / 3;
         initRecyclerView();
+    }
+
+    private FloatImgBean getFloatImg(){
+        for (FloatImgBean bean : mImagePool) {
+            if (!bean.mIsAnimator){
+                return bean;
+            }
+        }
+        return null;
     }
 
     private void initRecyclerView() {
@@ -109,8 +143,7 @@ public abstract class SelectionFragment extends Fragment {
 
         mSelectList = mIconListRvAdapter.getList();
 
-        mAdapter = new ShowMultiAdapter();
-        mAdapter.register(getBeanClass(), getBinder());
+        mAdapter.setTypePool(mTypePool);
         mSmartRecycleView.setFirstPage(1)
                 .setAutoRefresh(false)
                 .setPageSize(20)
@@ -123,6 +156,13 @@ public abstract class SelectionFragment extends Fragment {
 
     }
 
+    public void setTypePool(TypePool typePool){
+        this.mTypePool = typePool;
+    }
+    public void setAdapter(BaseMultiAdapter adapter){
+        this.mAdapter = adapter;
+    }
+
     private void getParentPoint() {
         int[] locations = new int[2];
         mIconRecyclerView.getLocationOnScreen(locations);
@@ -130,34 +170,55 @@ public abstract class SelectionFragment extends Fragment {
         mStartY = locations[1];
     }
 
-    public void getSourcePoint() {
+    int count = 0;
+
+    public void getSourcePoint(final View itemView, final Filter item) {
         getParentPoint();
-        mFloatImg.setVisibility(View.VISIBLE);
+//        mFloatImg_1.setVisibility(View.VISIBLE);
+        itemView.setClickable(false);
+        final FloatImgBean floatImg = getFloatImg();
+        floatImg.mImageView.setVisibility(View.VISIBLE);
+        mPlaceHolder.setVisibility(View.VISIBLE);
+        floatImg.mImageView.setImageResource(item.getImageResource());
+        floatImg.mIsAnimator = true;
+        int[] targetCoordinates = getTarget(mIconRecyclerView, count++);
+        Log.d("haha", "调用结果 x = " + targetCoordinates[0] + ", y = " + targetCoordinates[1]);
 
         int[] sourceLocation = new int[2];
         mSourceView.getLocationOnScreen(sourceLocation);
         int startX = sourceLocation[0];
         int startY = sourceLocation[1];
 
+//        ViewGroup parent = (ViewGroup) mSourceView.getParent();
+//        parent.removeView(mSourceView);
+//        mFlContainer.addView(mSourceView);
+
         int[] tagetLocation = new int[2];
         mIconRecyclerView.getLocationOnScreen(tagetLocation);
-        int endX = tagetLocation[0]+mIconRecyclerView.getWidth()+SizeUtils.dp2px(activity,5);
-        int endY = tagetLocation[1]+SizeUtils.dp2px(activity,5)*2;
-        if (endX>=mMaxWidth){
-            endX = mMaxWidth-SizeUtils.dp2px(activity,40);
-        }
+        int endX = tagetLocation[0] + mIconRecyclerView.getWidth() + SizeUtils.dp2px(activity, 5);
+        int endY = tagetLocation[1] + SizeUtils.dp2px(activity, 5) * 2;
+//        if (endX >= mMaxWidth) {
+//            endX = mMaxWidth - SizeUtils.dp2px(activity, 40);
+//        }
 
-        ObjectAnimator animatorX = ObjectAnimator.ofFloat(mFloatImg, "translationX", startX-mStartX, endX-mStartX);
-        ObjectAnimator animatorY = ObjectAnimator.ofFloat(mFloatImg, "translationY", startY - mStartY, endY - mStartY);
+        ObjectAnimator animatorX = ObjectAnimator.ofFloat(floatImg.mImageView, "translationX", startX - mStartX, endX - mStartX);
+        ObjectAnimator animatorY = ObjectAnimator.ofFloat(floatImg.mImageView, "translationY", startY - mStartY, endY - mStartY);
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.playTogether(animatorX, animatorY);
-        animatorSet.setDuration(calcDuration(startX-endX,startY-endY));
+        animatorSet.setDuration(calcDuration(startX - endX, startY - endY));
         animatorSet.setInterpolator(new OvershootInterpolator(1.1f));
         animatorSet.start();
         animatorSet.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                mFloatImg.setVisibility(View.GONE);
+                floatImg.mImageView.setVisibility(View.GONE);
+                floatImg.mIsAnimator = false;
+//                mIconListRvAdapter.showLastItem();
+                mIconListRvAdapter.add(item);
+                mIconRecyclerView.smoothScrollToPosition(mIconListRvAdapter.getItemCount());
+                mPlaceHolder.setVisibility(View.GONE);
+                refreshLayout(false);
+                itemView.setClickable(true);
             }
         });
     }
@@ -169,15 +230,15 @@ public abstract class SelectionFragment extends Fragment {
         }
         getParentPoint();
 
-        mFloatImg.setPivotX(mFloatImg.getWidth() / 2);
-        mFloatImg.setPivotY(mFloatImg.getHeight() / 2);
-        mFloatImg.setVisibility(View.VISIBLE);
+        mFloatImg_1.setPivotX(mFloatImg_1.getWidth() / 2);
+        mFloatImg_1.setPivotY(mFloatImg_1.getHeight() / 2);
+        mFloatImg_1.setVisibility(View.VISIBLE);
         int[] initial = new int[2];
         view.getLocationOnScreen(initial);
 
         sourceRecycler.getLayoutManager().removeViewAt(position);
 
-        ShowMultiAdapter sourceRecyclerAdapter = (ShowMultiAdapter) sourceRecycler.getAdapter();
+        BaseMultiAdapter sourceRecyclerAdapter = (BaseMultiAdapter) sourceRecycler.getAdapter();
         Filter removedItem = sourceRecyclerAdapter.getItem(position);
 
         int width = view.getWidth();
@@ -202,10 +263,10 @@ public abstract class SelectionFragment extends Fragment {
         float targetY = (targetCoordinates[1] - initial[1]) + 0.5f;
         long duration = calcDuration(targetX, targetY);
 
-        animateTranslation(mFloatImg,targetX,targetY,duration);
+        animateTranslation(mFloatImg_1, targetX, targetY, duration);
 
-//        ObjectAnimator animatorX = ObjectAnimator.ofFloat(mFloatImg, "translationX", initial[0], targetCoordinates[0]);
-//        ObjectAnimator animatorY = ObjectAnimator.ofFloat(mFloatImg, "translationY", initial[1] - mStartY, targetCoordinates[1] - mStartY);
+//        ObjectAnimator animatorX = ObjectAnimator.ofFloat(mFloatImg_1, "translationX", initial[0], targetCoordinates[0]);
+//        ObjectAnimator animatorY = ObjectAnimator.ofFloat(mFloatImg_1, "translationY", initial[1] - mStartY, targetCoordinates[1] - mStartY);
 //        AnimatorSet animatorSet = new AnimatorSet();
 //        animatorSet.playTogether(animatorX, animatorY);
 //        animatorSet.setDuration(500);
@@ -215,7 +276,7 @@ public abstract class SelectionFragment extends Fragment {
 //        animateTranslation(view, deltaX = targetX, deltaY = targetY, duration = duration)
     }
 
-    private void animateTranslation(View view, float deltaX,float deltaY,Long duration ) {
+    private void animateTranslation(View view, float deltaX, float deltaY, Long duration) {
         view.animate().setDuration(duration)
                 .setInterpolator(new OvershootInterpolator(1.1f))
                 .translationXBy(deltaX)
@@ -224,20 +285,21 @@ public abstract class SelectionFragment extends Fragment {
     }
 
     private long calcDuration(float targetX, float targetY) {
-        return (long) (Math.sqrt((targetX * targetX + targetY * targetY)) * 0.7);
+        return (long) (Math.sqrt((targetX * targetX + targetY * targetY)) *0.7f);
     }
 
     private int[] getTarget(RecyclerView targetRecycler, int index) {
         int prev = Math.max(0, index - 0);
         RecyclerView.ViewHolder viewHolderForAdapterPosition = targetRecycler.findViewHolderForAdapterPosition(prev);
-        View targetView = viewHolderForAdapterPosition==null?null:viewHolderForAdapterPosition.itemView;
+        View targetView = viewHolderForAdapterPosition == null ? null : viewHolderForAdapterPosition.itemView;
         if (targetView == null) {
-            viewHolderForAdapterPosition = targetRecycler.findViewHolderForAdapterPosition(prev-1);
-            targetView = viewHolderForAdapterPosition==null?null:viewHolderForAdapterPosition.itemView;
+            viewHolderForAdapterPosition = targetRecycler.findViewHolderForAdapterPosition(prev - 1);
+            targetView = viewHolderForAdapterPosition == null ? null : viewHolderForAdapterPosition.itemView;
             if (targetView != null) {
                 int[] targetCoordinates = new int[2];
                 targetView.getLocationOnScreen(targetCoordinates);
                 targetCoordinates[1] += targetView.getHeight();
+                Log.d("haha", "targetView !=null x = " + targetCoordinates[0] + ", y = " + targetCoordinates[1]);
                 return targetCoordinates;
             }
         }
@@ -248,10 +310,11 @@ public abstract class SelectionFragment extends Fragment {
             if (targetRecycler.getChildCount() != 0) {
                 targetCoordinates[1] += targetRecycler.getHeight();
             }
+            Log.d("haha", "targetView == null x = " + targetCoordinates[0] + ", y = " + targetCoordinates[1]);
             return targetCoordinates;
         }
 
-        return new int[]{0,0};
+        return new int[]{0, 0};
     }
 
 
@@ -262,10 +325,6 @@ public abstract class SelectionFragment extends Fragment {
         }
         mSmartRecycleView.handleData(data);
     }
-
-    public abstract ItemViewBinder<Filter, BaseViewHolder> getBinder();
-
-    public abstract Class<Filter> getBeanClass();
 
     private void initListener() {
 //        mIconListRvAdapter.setOnLastItemLoadListenr(new OnLastItemLoadListener() {
@@ -288,20 +347,14 @@ public abstract class SelectionFragment extends Fragment {
             }
         });
 
-        getBinder().setOnItemClickListener(new OnItemClickListener() {
+        mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, Filter item, boolean isSelected) {
                 if (isSelected) {
-                    mIconListRvAdapter.add(item);
-                    mIconRecyclerView.smoothScrollToPosition(mIconListRvAdapter.getItemCount());
+//                    mIconListRvAdapter.addHiddenItem(item);
+//                    mIconRecyclerView.smoothScrollToPosition(mIconListRvAdapter.getItemCount());
                     mSourceView = v.findViewById(R.id.iv_icon);
-//                    mSourceView.postDelayed(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            animate(mSmartRecycleView.getRecyclerView(), mIconRecyclerView, 2);
-//                        }
-//                    },200);
-                    getSourcePoint();
+                    getSourcePoint(v,item);
 
                 } else {
                     mIconListRvAdapter.remove(item);
@@ -316,6 +369,34 @@ public abstract class SelectionFragment extends Fragment {
                 mAdapter.updateItem(item);
                 mIconListRvAdapter.remove(item);
                 refreshLayout(false);
+            }
+        });
+
+        mEtSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                String trim = mEtSearch.getText().toString().trim();
+                if (trim.length()==0){
+                    mAdapter.setItems(mData);
+                }else {
+                    mMatchList.clear();
+                    for (Filter item : mData) {
+                        if (item.isMatch(trim)) {
+                            mMatchList.add(item);
+                        }
+                    }
+                    mAdapter.setItems(mMatchList);
+                }
             }
         });
     }
@@ -341,6 +422,28 @@ public abstract class SelectionFragment extends Fragment {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, LinearLayout.LayoutParams.WRAP_CONTENT);
         mIconRecyclerView.setLayoutParams(params);
         mContainer.requestLayout();
+    }
+
+    public static class Builder{
+        private FragmentActivity mActivity;
+        private BaseMultiAdapter mMultiAdapter;
+        private TypePool mTypePool;
+
+        public Builder(FragmentActivity activity, BaseMultiAdapter multiAdapter, TypePool typePool){
+            mActivity = activity;
+            mMultiAdapter = multiAdapter;
+            mTypePool = typePool;
+        }
+        public SelectionFragment build(){
+            SelectionFragment selectionFragment = new SelectionFragment();
+            FragmentManager supportFragmentManager = mActivity.getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = supportFragmentManager.beginTransaction();
+            fragmentTransaction.add(R.id.container, selectionFragment);
+            fragmentTransaction.commit();
+            selectionFragment.setTypePool(mTypePool);
+            selectionFragment.setAdapter(mMultiAdapter);
+            return selectionFragment;
+        }
     }
 
 }

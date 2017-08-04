@@ -1,6 +1,7 @@
 package com.gersion.multiselecter;
 
-import com.gersion.library.listener.Filter;
+import com.gersion.library.inter.Filter;
+import com.gersion.library.utils.MatchUtils;
 
 /**
  * Created by gersy on 2017/7/25.
@@ -8,8 +9,7 @@ import com.gersion.library.listener.Filter;
 
 public class UserBean implements Filter {
     public String userName;
-    public String icon;
-    public String isSelectMode;
+    public int icon;
     public int age;
     public boolean isSelected;
 
@@ -24,17 +24,25 @@ public class UserBean implements Filter {
     }
 
     @Override
+    public int getImageResource() {
+        return icon;
+    }
+
+    @Override
     public int filter() {
         if (age<3){
             return Filter.NO_CHOICE;
-        }else if (age>=3&&age<12){
+        }else if (age>=3&&age<100){
             return Filter.NORMAL;
-        }else if (age >=12 && age<30){
-//            setSelected(true);
-            return Filter.NORMAL;
-        }else if (age>=30){
-            return Filter.NOT_SHOW;
         }
         return 0;
+    }
+
+    @Override
+    public boolean isMatch(String condition) {
+        if (MatchUtils.isMatch(userName,condition)){
+            return true;
+        }
+        return false;
     }
 }

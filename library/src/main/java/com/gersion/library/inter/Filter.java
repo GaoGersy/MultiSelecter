@@ -1,4 +1,4 @@
-package com.gersion.library.listener;
+package com.gersion.library.inter;
 
 /**
  * Created by gersy on 2017/7/24.
@@ -14,9 +14,13 @@ public interface Filter {
     //不显示在列表
     int NOT_SHOW = 3;
 
+    int getImageResource();
+
     int filter();
 
     boolean isSelected();
 
     void setSelected(boolean isSelected);
+
+    boolean isMatch(String condition);
 }

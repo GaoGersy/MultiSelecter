@@ -1,4 +1,4 @@
-package com.gersion.library.listener;
+package com.gersion.library.inter;
 
 /**
  * Created by gersy on 2017/7/25.

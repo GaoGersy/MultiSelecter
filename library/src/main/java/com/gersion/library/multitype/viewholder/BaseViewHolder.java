@@ -1,4 +1,4 @@
-package com.gersion.library.viewholder;
+package com.gersion.library.multitype.viewholder;
 
 import android.graphics.Bitmap;
 import android.graphics.Paint;
@@ -11,7 +11,7 @@ import android.support.annotation.IdRes;
 import android.support.annotation.StringRes;
 import android.support.v7.widget.RecyclerView;
 import android.text.util.Linkify;
-import android.util.SparseArray;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.Adapter;
@@ -24,158 +24,119 @@ import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
-import com.gersion.library.multitype.MultiTypeAdapter;
-import com.gersion.library.listener.Filter;
-import com.gersion.library.listener.OnItemClickListener;
+import com.gersion.library.R;
+import com.gersion.library.inter.Filter;
+import com.gersion.library.inter.OnItemClickListener;
+import com.gersion.library.multitype.adapter.MultiTypeAdapter;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+public class BaseViewHolder<T extends Filter> extends RecyclerView.ViewHolder {
 
-public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.ViewHolder {
-
-    /**
-     * Views indexed with their IDs
-     */
-    private final SparseArray<View> views;
-    private OnItemClickListener mListener;
-
-    public Set<Integer> getNestViews() {
-        return nestViews;
-    }
-
-    private final HashSet<Integer> nestViews;
-
-    private final LinkedHashSet<Integer> childClickViewIds;
-
-    private final LinkedHashSet<Integer> itemChildLongClickViewIds;
-    private MultiTypeAdapter adapter;
     private CheckBox mCheckBox;
+    private TextView mTvName;
+
+        private OnItemClickListener mListener;
+//
+    private MultiTypeAdapter adapter;
+//    private CheckBox mCheckBox;
     private int normalBackgroundResource;
     private int noChoiceBackgroundResource;
-    /**
-     * use itemView instead
-     */
-    @Deprecated
-    public View convertView;
-
-    /**
-     * Package private field to retain the associated user object and detect a change
-     */
+//    /**
+//     * use itemView instead
+//     */
+//    @Deprecated
+//    public View convertView;
+//
+//    /**
+//     * Package private field to retain the associated user object and detect a change
+//     */
     Object associatedObject;
-
-
-
-
     public BaseViewHolder(final View view) {
         super(view);
-        this.views = new SparseArray<>();
-        this.childClickViewIds = new LinkedHashSet<>();
-        this.itemChildLongClickViewIds = new LinkedHashSet<>();
-        this.nestViews = new HashSet<>();
-        convertView = view;
-
     }
 
-    public void setData(T data){
-        data2View(data);
-        mCheckBox = getCheckBox();
-        noChoiceBackgroundResource = getNoChoiceBackgroundResource();
+
+    public void setData(T data) {
         normalBackgroundResource = getNormalBackgroundResource();
+        noChoiceBackgroundResource = getNoChoiceBackgroundResource();
+//        mCheckBox = getView(R.id.cb_selectmember);
         int type = data.filter();
-        if (type == Filter.NORMAL){
+        mCheckBox.setChecked(data.isSelected());
+        if (type == Filter.NORMAL) {
             onNormal(data);
-        }else if (type == Filter.SELECTED){
-            onSelected(data);
-        }else if (type == Filter.NO_CHOICE){
+        } else if (type == Filter.NO_CHOICE) {
             onNoChoice();
         }
     }
 
-    protected abstract void data2View(T data);
+    public void setCheckBox(CheckBox checkBox) {
+        if (checkBox == null) {
+            throw new IllegalArgumentException("checkBox 不能为空");
+        }
+        this.mCheckBox = checkBox;
+    }
 
-    protected abstract CheckBox getCheckBox();
-    protected abstract int getNormalBackgroundResource();
-    protected abstract int getNoChoiceBackgroundResource();
+    protected int getNormalBackgroundResource() {
+        return R.drawable.btn_check;
+    }
 
-    public void onNormal(T data){
-        if (mCheckBox!=null){
+    protected int getNoChoiceBackgroundResource() {
+        return R.drawable.geycheck;
+    }
+
+    public void onNormal(T data) {
+        if (mCheckBox != null) {
             mCheckBox.setBackgroundResource(normalBackgroundResource);
-            mCheckBox.setChecked(data.isSelected());
-
             setClickListener(data);
         }
     }
 
-    public void onSelected(T data){
-        if (mCheckBox!=null){
+    public void onSelected(T data) {
+        if (mCheckBox != null) {
             mCheckBox.setBackgroundResource(normalBackgroundResource);
             mCheckBox.setChecked(true);
             data.setSelected(true);
-            if (mListener!=null){
-                mListener.onItemClick(itemView, data,true);
+            if (mListener != null) {
+                mListener.onItemClick(itemView, data, true);
             }
 
             setClickListener(data);
         }
     }
 
-    private void setClickListener(final T data) {
+    private void setClickListener(final Filter data) {
         itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 boolean checked = mCheckBox.isChecked();
                 mCheckBox.setChecked(!checked);
                 data.setSelected(!checked);
-                if (mListener!=null){
-                    mListener.onItemClick(itemView, data,!checked);
+                if (mListener != null) {
+                    mListener.onItemClick(itemView, data, !checked);
                 }
             }
         });
     }
 
-    public void onNoChoice(){
-        if (mCheckBox!=null) {
-            mCheckBox.setChecked(false);
+    public void onNoChoice() {
+        if (mCheckBox != null) {
+//            mCheckBox.setChecked(false);
             mCheckBox.setBackgroundResource(noChoiceBackgroundResource);
 
             itemView.setOnClickListener(null);
         }
     }
 
-    public void setOnItemClickListener(OnItemClickListener listener){
+    public void setOnItemClickListener(OnItemClickListener listener) {
         mListener = listener;
     }
 
 
-//    private int getClickPosition() {
-//        return getLayoutPosition() - adapter.getHeaderLayoutCount();
-//    }
-
-    public HashSet<Integer> getItemChildLongClickViewIds() {
-        return itemChildLongClickViewIds;
-    }
-
-    public HashSet<Integer> getChildClickViewIds() {
-        return childClickViewIds;
-    }
-
-    /**
-     * use itemView instead
-     *
-     * @return the ViewHolder root view
-     */
-    @Deprecated
-    public View getConvertView() {
-
-        return convertView;
-    }
 
     /**
      * Will set the text of a TextView.
      *
      * @param viewId The view id.
-     * @param value  The text to put in the text view.
+     * @param value The text to put in the text view.
      * @return The BaseViewHolder for chaining.
      */
     public BaseViewHolder setText(@IdRes int viewId, CharSequence value) {
@@ -193,7 +154,7 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
     /**
      * Will set the image of an ImageView from a resource id.
      *
-     * @param viewId     The view id.
+     * @param viewId The view id.
      * @param imageResId The image resource id.
      * @return The BaseViewHolder for chaining.
      */
@@ -207,7 +168,7 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
      * Will set background color of a view.
      *
      * @param viewId The view id.
-     * @param color  A color, not a resource id.
+     * @param color A color, not a resource id.
      * @return The BaseViewHolder for chaining.
      */
     public BaseViewHolder setBackgroundColor(@IdRes int viewId, @ColorInt int color) {
@@ -219,7 +180,7 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
     /**
      * Will set background of a view.
      *
-     * @param viewId        The view id.
+     * @param viewId The view id.
      * @param backgroundRes A resource to use as a background.
      * @return The BaseViewHolder for chaining.
      */
@@ -232,7 +193,7 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
     /**
      * Will set text color of a TextView.
      *
-     * @param viewId    The view id.
+     * @param viewId The view id.
      * @param textColor The text color (not a resource id).
      * @return The BaseViewHolder for chaining.
      */
@@ -246,7 +207,7 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
     /**
      * Will set the image of an ImageView from a drawable.
      *
-     * @param viewId   The view id.
+     * @param viewId The view id.
      * @param drawable The image drawable.
      * @return The BaseViewHolder for chaining.
      */
@@ -285,7 +246,7 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
     /**
      * Set a view visibility to VISIBLE (true) or GONE (false).
      *
-     * @param viewId  The view id.
+     * @param viewId The view id.
      * @param visible True for VISIBLE, false for GONE.
      * @return The BaseViewHolder for chaining.
      */
@@ -332,7 +293,7 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
     /**
      * Sets the progress of a ProgressBar.
      *
-     * @param viewId   The view id.
+     * @param viewId The view id.
      * @param progress The progress.
      * @return The BaseViewHolder for chaining.
      */
@@ -345,9 +306,9 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
     /**
      * Sets the progress and max of a ProgressBar.
      *
-     * @param viewId   The view id.
+     * @param viewId The view id.
      * @param progress The progress.
-     * @param max      The max value of a ProgressBar.
+     * @param max The max value of a ProgressBar.
      * @return The BaseViewHolder for chaining.
      */
     public BaseViewHolder setProgress(@IdRes int viewId, int progress, int max) {
@@ -361,7 +322,7 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
      * Sets the range of a ProgressBar to 0...max.
      *
      * @param viewId The view id.
-     * @param max    The max value of a ProgressBar.
+     * @param max The max value of a ProgressBar.
      * @return The BaseViewHolder for chaining.
      */
     public BaseViewHolder setMax(@IdRes int viewId, int max) {
@@ -388,7 +349,7 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
      *
      * @param viewId The view id.
      * @param rating The rating.
-     * @param max    The range of the RatingBar to 0...max.
+     * @param max The range of the RatingBar to 0...max.
      * @return The BaseViewHolder for chaining.
      */
     public BaseViewHolder setRating(@IdRes int viewId, float rating, int max) {
@@ -401,7 +362,7 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
     /**
      * Sets the on click listener of the view.
      *
-     * @param viewId   The view id.
+     * @param viewId The view id.
      * @param listener The on click listener;
      * @return The BaseViewHolder for chaining.
      */
@@ -443,29 +404,15 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
 //    }
 
 
-    /**
-     * set nestview id
-     *
-     * @param viewId add the child view id   can support childview click
-     * @return
-     */
-    public BaseViewHolder setNestView(@IdRes int viewId) {
-//        addOnClickListener(viewId);
-//        addOnLongClickListener(viewId);
-        nestViews.add(viewId);
-        return this;
-    }
 
     /**
      * add long click view id
      *
-     * @param viewId
      * @return if you use adapter bind listener
      * @link {(adapter.setOnItemChildLongClickListener(listener))}
      * <p>
      * or if you can use  recyclerView.addOnItemTouch(listerer)  wo also support this menthod
      */
-    @SuppressWarnings("unchecked")
 //    public BaseViewHolder addOnLongClickListener(@IdRes final int viewId) {
 //        itemChildLongClickViewIds.add(viewId);
 //        final View view = getView(viewId);
@@ -502,7 +449,7 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
     /**
      * Sets the on long click listener of the view.
      *
-     * @param viewId   The view id.
+     * @param viewId The view id.
      * @param listener The on long click listener;
      * @return The BaseViewHolder for chaining.
      * Please use {@link #addOnLongClickListener(int)} (adapter.setOnItemChildLongClickListener(listener))}
@@ -517,7 +464,7 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
     /**
      * Sets the listview or gridview's item click listener of the view
      *
-     * @param viewId   The view id.
+     * @param viewId The view id.
      * @param listener The item on click listener;
      * @return The BaseViewHolder for chaining.
      * Please use {@link #addOnClickListener(int)} (int)} (adapter.setOnItemChildClickListener(listener))}
@@ -532,7 +479,7 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
     /**
      * Sets the listview or gridview's item long click listener of the view
      *
-     * @param viewId   The view id.
+     * @param viewId The view id.
      * @param listener The item long click listener;
      * @return The BaseViewHolder for chaining.
      */
@@ -545,7 +492,7 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
     /**
      * Sets the listview or gridview's item selected click listener of the view
      *
-     * @param viewId   The view id.
+     * @param viewId The view id.
      * @param listener The item selected click listener;
      * @return The BaseViewHolder for chaining.
      */
@@ -558,7 +505,7 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
     /**
      * Sets the on checked change listener of the view.
      *
-     * @param viewId   The view id.
+     * @param viewId The view id.
      * @param listener The checked change listener of compound button.
      * @return The BaseViewHolder for chaining.
      */
@@ -572,7 +519,7 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
      * Sets the tag of the view.
      *
      * @param viewId The view id.
-     * @param tag    The tag;
+     * @param tag The tag;
      * @return The BaseViewHolder for chaining.
      */
     public BaseViewHolder setTag(@IdRes int viewId, Object tag) {
@@ -585,8 +532,8 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
      * Sets the tag of the view.
      *
      * @param viewId The view id.
-     * @param key    The key of tag;
-     * @param tag    The tag;
+     * @param key The key of tag;
+     * @param tag The tag;
      * @return The BaseViewHolder for chaining.
      */
     public BaseViewHolder setTag(@IdRes int viewId, int key, Object tag) {
@@ -598,7 +545,7 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
     /**
      * Sets the checked status of a checkable.
      *
-     * @param viewId  The view id.
+     * @param viewId The view id.
      * @param checked The checked status;
      * @return The BaseViewHolder for chaining.
      */
@@ -614,7 +561,7 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
     /**
      * Sets the adapter of a adapter view.
      *
-     * @param viewId  The view id.
+     * @param viewId The view id.
      * @param adapter The adapter;
      * @return The BaseViewHolder for chaining.
      */
@@ -631,18 +578,18 @@ public abstract class BaseViewHolder<T extends Filter> extends RecyclerView.View
      * @param adapter The adapter;
      * @return The BaseViewHolder for chaining.
      */
-    protected BaseViewHolder setAdapter(MultiTypeAdapter adapter) {
+    public BaseViewHolder setAdapter(MultiTypeAdapter adapter) {
         this.adapter = adapter;
         return this;
     }
 
     @SuppressWarnings("unchecked")
     public <T extends View> T getView(@IdRes int viewId) {
-        View view = views.get(viewId);
-        if (view == null) {
-            view = itemView.findViewById(viewId);
-            views.put(viewId, view);
-        }
+        View view = itemView.findViewById(viewId);
+//        if (view == null) {
+//            view = itemView.findViewById(viewId);
+//            views.put(viewId, view);
+//        }
         return (T) view;
     }
 
