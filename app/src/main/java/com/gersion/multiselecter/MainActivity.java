@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
         MultiSelectView selectView = new MultiSelecter.Builder(this, container)
                 .setImageLoader(new GlideImageLoader())
                 .setMultiAdapter(new UserAdapter())
+                .setSelectType(MultiSelecter.MULTI_SELECT)
                 .register(UserBean.class, R.layout.item_user)
                 .register(TitleBean.class, R.layout.item_title)
                 .build();

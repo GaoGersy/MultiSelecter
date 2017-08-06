@@ -65,9 +65,6 @@ public class BaseViewHolder<T extends Filter> extends RecyclerView.ViewHolder {
     }
 
     public void setCheckBox(CheckBox checkBox) {
-//        if (checkBox == null) {
-//            throw new IllegalArgumentException("checkBox 不能为空");
-//        }
         this.mCheckBox = checkBox;
     }
 
@@ -123,11 +120,11 @@ public class BaseViewHolder<T extends Filter> extends RecyclerView.ViewHolder {
         if (mCurrentCheckBox != null) {
             mCurrentCheckBox.setChecked(false);
             mCurrentItem.setSelected(false);
-            mListener.onItemClick(itemView,mCurrentItem,false);
+            mListener.onItemClick(itemView, mCurrentItem, false);
         }
         data.setSelected(true);
         mCheckBox.setChecked(true);
-        mListener.onItemClick(itemView,data,true);
+        mListener.onItemClick(itemView, data, true);
         mCurrentCheckBox = mCheckBox;
         mCurrentItem = data;
     }

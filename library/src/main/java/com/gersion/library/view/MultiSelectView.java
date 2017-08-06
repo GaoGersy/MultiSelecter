@@ -73,7 +73,7 @@ public class MultiSelectView extends FrameLayout {
     private int mWidth5;
 
     public MultiSelectView(@NonNull Context context) {
-        this(context,null);
+        this(context, null);
     }
 
     public MultiSelectView(@NonNull Context context, @Nullable AttributeSet attrs) {
@@ -185,7 +185,7 @@ public class MultiSelectView extends FrameLayout {
         floatImg.mImageView.setVisibility(View.VISIBLE);
         mPlaceHolder.setVisibility(View.VISIBLE);
         floatImg.mImageView.setImageResource(item.getImageResource());
-        MultiSelecter.mImageLoader.showImage(mContext,item.getImageUrl(),floatImg.mImageView);
+        MultiSelecter.mImageLoader.showImage(mContext, item.getImageUrl(), floatImg.mImageView);
         floatImg.mIsAnimator = true;
 
         int[] sourceLocation = new int[2];
@@ -337,36 +337,13 @@ public class MultiSelectView extends FrameLayout {
         mContainer.requestLayout();
     }
 
-    public void setSelectType(int selectType){
+    public List getSelectResult(){
+        return mIconListRvAdapter.getList();
+    }
+
+    public void setSelectType(int selectType) {
         mSelectType = selectType;
         mAdapter.setSelectType(selectType);
     }
 
-    public static class Builder {
-        private BaseMultiAdapter mMultiAdapter;
-        private TypePool mTypePool;
-        private Context mContext;
-
-        public Builder(Context context) {
-            mContext = context;
-        }
-
-        public Builder setTypePool(TypePool typePool) {
-            mTypePool = typePool;
-            return this;
-        }
-
-        public Builder setMultiAdapter(BaseMultiAdapter multiAdapter) {
-            mMultiAdapter = multiAdapter;
-            return this;
-        }
-
-        public MultiSelectView build() {
-            MultiSelectView multiSelectView = new MultiSelectView(mContext);
-            multiSelectView.setAdapter(this.mMultiAdapter);
-            multiSelectView.setTypePool(mTypePool);
-            multiSelectView.init();
-            return multiSelectView;
-        }
-    }
 }
