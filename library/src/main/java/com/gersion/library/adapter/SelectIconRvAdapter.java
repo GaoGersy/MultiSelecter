@@ -1,13 +1,14 @@
 package com.gersion.library.adapter;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 
+import com.gersion.library.MultiSelecter;
 import com.gersion.library.R;
 import com.gersion.library.inter.Filter;
 import com.gersion.library.inter.OnItemClickListener;
@@ -19,6 +20,7 @@ public class SelectIconRvAdapter extends RecyclerView.Adapter<SelectIconRvAdapte
 
     private List<Filter> itemFilters = new ArrayList<>();
     private OnItemClickListener mListener;
+    private static Context mContext;
 
 
     public void setItemFilters(@NonNull List<Filter> itemFilters) {
@@ -81,7 +83,8 @@ public class SelectIconRvAdapter extends RecyclerView.Adapter<SelectIconRvAdapte
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
+        mContext = parent.getContext();
+        View view = LayoutInflater.from(mContext)
                 .inflate(R.layout.item_icon, parent, false);
         return new ViewHolder(view);
     }
@@ -103,19 +106,12 @@ public class SelectIconRvAdapter extends RecyclerView.Adapter<SelectIconRvAdapte
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
-        @NonNull
         ImageView cover;
-        @NonNull
-        TextView title;
         private OnItemClickListener mListener;
-
 
         ViewHolder(View itemView) {
             super(itemView);
             cover = itemView.findViewById(R.id.icon);
-//            title = (TextView) itemView.findViewById(R.id.title);
-
-
         }
 
         public void setData(final Filter data, int position) {
@@ -127,7 +123,7 @@ public class SelectIconRvAdapter extends RecyclerView.Adapter<SelectIconRvAdapte
                     }
                 }
             });
-            cover.setImageResource(data.getImageResource());
+            MultiSelecter.mImageLoader.showImage(mContext,data.getImageUrl(),cover);
 
         }
 

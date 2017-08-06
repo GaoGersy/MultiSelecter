@@ -1,11 +1,11 @@
-package com.gersion.library.smartrecycleview;
+package com.gersion.library.view.smartrecycleview;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.gersion.library.smartrecycleview.ptr2.PullToRefreshLayout;
+import com.gersion.library.view.smartrecycleview.ptr2.PullToRefreshLayout;
 
 
 /**

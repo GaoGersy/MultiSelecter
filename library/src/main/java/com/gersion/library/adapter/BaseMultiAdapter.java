@@ -6,7 +6,7 @@ import android.widget.CheckBox;
 import com.gersion.library.inter.Filter;
 import com.gersion.library.multitype.adapter.MultiTypeAdapter;
 import com.gersion.library.multitype.viewholder.BaseViewHolder;
-import com.gersion.library.smartrecycleview.IRVAdapter;
+import com.gersion.library.view.smartrecycleview.IRVAdapter;
 
 import java.util.List;
 
@@ -15,9 +15,6 @@ import java.util.List;
  */
 
 public abstract class BaseMultiAdapter<T extends Filter> extends MultiTypeAdapter<T,BaseViewHolder<Filter>> implements IRVAdapter<Filter> {
-
-    private int mTotalCount;
-    private CheckBox mCheckBox;
 
     @Override
     public RecyclerView.Adapter getAdapter() {
@@ -32,10 +29,6 @@ public abstract class BaseMultiAdapter<T extends Filter> extends MultiTypeAdapte
         return mSelectionList;
     }
 
-    public void setTotalCount(int count) {
-        mTotalCount = count;
-    }
-
     public void changeAllDataStatus(boolean selected) {
         for (Filter friendDataBean : items) {
             if (friendDataBean.filter()!=Filter.NO_CHOICE) {
@@ -46,12 +39,16 @@ public abstract class BaseMultiAdapter<T extends Filter> extends MultiTypeAdapte
     }
 
     public void updateItem(T bean){
-        for (T friendDataBean : items) {
+        int index = -1;
+        for (int i = 0; i < items.size(); i++) {
+            T friendDataBean = items.get(i);
             if (friendDataBean==bean){
                 friendDataBean.setSelected(false);
+                index = i;
+                break;
             }
         }
-        notifyDataSetChanged();
+        notifyItemChanged(index);
     }
 
     public T getItem(int position){
@@ -86,8 +83,6 @@ public abstract class BaseMultiAdapter<T extends Filter> extends MultiTypeAdapte
     public List getData() {
         return items;
     }
-
-
 
     @Override
     protected abstract void convert(BaseViewHolder helper, T item);

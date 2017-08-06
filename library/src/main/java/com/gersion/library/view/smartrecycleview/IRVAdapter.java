@@ -1,4 +1,4 @@
-package com.gersion.library.smartrecycleview;
+package com.gersion.library.view.smartrecycleview;
 
 import android.support.v7.widget.RecyclerView;
 

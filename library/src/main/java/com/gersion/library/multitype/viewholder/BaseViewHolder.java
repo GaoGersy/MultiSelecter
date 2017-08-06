@@ -11,7 +11,6 @@ import android.support.annotation.IdRes;
 import android.support.annotation.StringRes;
 import android.support.v7.widget.RecyclerView;
 import android.text.util.Linkify;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.Adapter;
@@ -25,31 +24,27 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.gersion.library.R;
+import com.gersion.library.fragment.SelectionFragment;
 import com.gersion.library.inter.Filter;
 import com.gersion.library.inter.OnItemClickListener;
 import com.gersion.library.multitype.adapter.MultiTypeAdapter;
 
+import static android.R.attr.checked;
+
 public class BaseViewHolder<T extends Filter> extends RecyclerView.ViewHolder {
 
     private CheckBox mCheckBox;
-    private TextView mTvName;
+    private static CheckBox mCurrentCheckBox;
+    private static Filter mCurrentItem;
 
-        private OnItemClickListener mListener;
-//
+    private OnItemClickListener mListener;
     private MultiTypeAdapter adapter;
-//    private CheckBox mCheckBox;
     private int normalBackgroundResource;
     private int noChoiceBackgroundResource;
-//    /**
-//     * use itemView instead
-//     */
-//    @Deprecated
-//    public View convertView;
-//
-//    /**
-//     * Package private field to retain the associated user object and detect a change
-//     */
     Object associatedObject;
+
+    private int selectType;
+
     public BaseViewHolder(final View view) {
         super(view);
     }
@@ -58,9 +53,10 @@ public class BaseViewHolder<T extends Filter> extends RecyclerView.ViewHolder {
     public void setData(T data) {
         normalBackgroundResource = getNormalBackgroundResource();
         noChoiceBackgroundResource = getNoChoiceBackgroundResource();
-//        mCheckBox = getView(R.id.cb_selectmember);
         int type = data.filter();
-        mCheckBox.setChecked(data.isSelected());
+        if (mCheckBox != null) {
+            mCheckBox.setChecked(data.isSelected());
+        }
         if (type == Filter.NORMAL) {
             onNormal(data);
         } else if (type == Filter.NO_CHOICE) {
@@ -69,10 +65,14 @@ public class BaseViewHolder<T extends Filter> extends RecyclerView.ViewHolder {
     }
 
     public void setCheckBox(CheckBox checkBox) {
-        if (checkBox == null) {
-            throw new IllegalArgumentException("checkBox 不能为空");
-        }
+//        if (checkBox == null) {
+//            throw new IllegalArgumentException("checkBox 不能为空");
+//        }
         this.mCheckBox = checkBox;
+    }
+
+    public void setSelectType(int selectType) {
+        this.selectType = selectType;
     }
 
     protected int getNormalBackgroundResource() {
@@ -107,14 +107,38 @@ public class BaseViewHolder<T extends Filter> extends RecyclerView.ViewHolder {
         itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                boolean checked = mCheckBox.isChecked();
-                mCheckBox.setChecked(!checked);
-                data.setSelected(!checked);
-                if (mListener != null) {
-                    mListener.onItemClick(itemView, data, !checked);
+                if (selectType == SelectionFragment.MULTI_SELECT) {
+                    multiSelect(data);
+                } else {
+                    singleSelect(data);
                 }
             }
         });
+    }
+
+    private void singleSelect(Filter data) {
+        if (mListener == null) {
+            throw new IllegalStateException("没有设置点击事件监听");
+        }
+        if (mCurrentCheckBox != null) {
+            mCurrentCheckBox.setChecked(false);
+            mCurrentItem.setSelected(false);
+            mListener.onItemClick(itemView,mCurrentItem,false);
+        }
+        data.setSelected(true);
+        mCheckBox.setChecked(true);
+        mListener.onItemClick(itemView,data,true);
+        mCurrentCheckBox = mCheckBox;
+        mCurrentItem = data;
+    }
+
+    private void multiSelect(Filter data) {
+        boolean checked = mCheckBox.isChecked();
+        mCheckBox.setChecked(!checked);
+        data.setSelected(!checked);
+        if (mListener != null) {
+            mListener.onItemClick(itemView, data, !checked);
+        }
     }
 
     public void onNoChoice() {
@@ -129,7 +153,6 @@ public class BaseViewHolder<T extends Filter> extends RecyclerView.ViewHolder {
     public void setOnItemClickListener(OnItemClickListener listener) {
         mListener = listener;
     }
-
 
 
     /**
@@ -402,7 +425,6 @@ public class BaseViewHolder<T extends Filter> extends RecyclerView.ViewHolder {
 //
 //        return this;
 //    }
-
 
 
     /**

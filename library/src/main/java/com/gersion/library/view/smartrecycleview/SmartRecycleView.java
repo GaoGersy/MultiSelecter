@@ -1,4 +1,4 @@
-package com.gersion.library.smartrecycleview;
+package com.gersion.library.view.smartrecycleview;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -15,7 +15,7 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
 import com.gersion.library.R;
-import com.gersion.library.smartrecycleview.ptr2.PullToRefreshLayout;
+import com.gersion.library.view.smartrecycleview.ptr2.PullToRefreshLayout;
 
 import java.util.List;
 

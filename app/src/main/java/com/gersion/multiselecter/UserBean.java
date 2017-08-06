@@ -12,6 +12,7 @@ public class UserBean implements Filter {
     public int icon;
     public int age;
     public boolean isSelected;
+    public String iconUrl;
 
     @Override
     public boolean isSelected() {
@@ -26,6 +27,11 @@ public class UserBean implements Filter {
     @Override
     public int getImageResource() {
         return icon;
+    }
+
+    @Override
+    public String getImageUrl() {
+        return iconUrl;
     }
 
     @Override

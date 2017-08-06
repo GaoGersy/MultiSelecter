@@ -54,7 +54,7 @@
                 android:layout_height="7dp"
                 android:background="@color/light_gray"
                 />
-        <com.gersion.library.smartrecycleview.SmartRecycleView
+        <com.gersion.library.view.smartrecycleview.SmartRecycleView
                 android:id="@+id/smartRecycleView"
                 android:layout_weight="1"
                 android:layout_width="match_parent"

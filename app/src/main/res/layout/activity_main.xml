@@ -7,16 +7,16 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         tools:context="com.gersion.multiselecter.MainActivity"
+        android:id="@+id/container"
         >
     <!--<TextView-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="20dp"-->
-            <!--android:background="@color/colorAccent"-->
-            <!--/>-->
-    <FrameLayout
-            android:id="@+id/container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            />
-
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="20dp"-->
+    <!--android:background="@color/colorAccent"-->
+    <!--/>-->
+    <!--<FrameLayout-->
+    <!--android:id="@+id/container"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="match_parent"-->
+    <!--/>-->
 </LinearLayout>

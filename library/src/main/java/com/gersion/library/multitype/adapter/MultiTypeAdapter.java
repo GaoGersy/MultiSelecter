@@ -16,6 +16,7 @@
 
 package com.gersion.library.multitype.adapter;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
@@ -32,7 +33,6 @@ import com.gersion.library.multitype.viewholder.BaseViewHolder;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author drakeet
@@ -43,36 +43,27 @@ public abstract class MultiTypeAdapter<T extends Filter, K> extends RecyclerView
     protected OnItemClickListener mListener;
     protected List<T> items;
     private TypePool typePool;
+    protected Context mContext;
+
     //用来判断是使用了哪种注册类型< -1-还没使用过，0-多布局 ，1- 多Bean>
     private int registerType = -1;
+
     private static final int MULTI_LAYOUT = 0;
     private static final int MULTI_BEAN = 1;
-    protected List<T> mSelectionList = new ArrayList<>();
 
-    /**
-     * Constructs a MultiTypeAdapter with an empty items list.
-     */
+    protected List<T> mSelectionList = new ArrayList<>();
+    private int mSelectType;
+
     public MultiTypeAdapter() {
         this(new ArrayList<T>());
     }
 
 
-    /**
-     * Constructs a MultiTypeAdapter with a items list.
-     *
-     * @param items the items list
-     */
     public MultiTypeAdapter(@NonNull List<T> items) {
         this(items, null);
     }
 
 
-    /**
-     * Constructs a MultiTypeAdapter with a items list and a TypePool.
-     *
-     * @param items the items list
-     * @param pool the type pool
-     */
     public MultiTypeAdapter(@NonNull List<T> items, @NonNull TypePool pool) {
         this.items = getFilterItems(items);
         this.typePool = pool;
@@ -102,21 +93,10 @@ public abstract class MultiTypeAdapter<T extends Filter, K> extends RecyclerView
         typePool.register(layoutId);
     }
 
-    /**
-     * Sets and updates the items atomically and safely. It is recommended to use this method
-     * to update the items with a new wrapper list or consider using {@link CopyOnWriteArrayList}.
-     *
-     * <p>Note: If you want to refresh the list views after setting items, you should
-     * call {@link RecyclerView.Adapter#notifyDataSetChanged()} by yourself.</p>
-     *
-     * @param items the new items list
-     * @since v2.4.1
-     */
     public void setItems(@NonNull List<T> items) {
         this.items = getFilterItems(items);
         notifyDataSetChanged();
     }
-
 
     @NonNull
     public List<?> getItems() {
@@ -124,11 +104,6 @@ public abstract class MultiTypeAdapter<T extends Filter, K> extends RecyclerView
     }
 
 
-    /**
-     * Set the TypePool to hold the types and view binders.
-     *
-     * @param typePool the TypePool implementation
-     */
     public void setTypePool(@NonNull TypePool typePool) {
         this.typePool = typePool;
     }
@@ -139,6 +114,9 @@ public abstract class MultiTypeAdapter<T extends Filter, K> extends RecyclerView
         return typePool;
     }
 
+    public void setSelectType(int selectType){
+        mSelectType = selectType;
+    }
 
     @Override
     public final int getItemViewType(int position) {
@@ -157,25 +135,13 @@ public abstract class MultiTypeAdapter<T extends Filter, K> extends RecyclerView
 
     @Override
     public final ViewHolder onCreateViewHolder(ViewGroup parent, int indexViewType) {
+        if (mContext==null) {
+            mContext = parent.getContext();
+        }
         ViewHolder viewHolder = typePool.getViewHolder(parent, indexViewType);
-//        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_user, parent, false);
         return viewHolder;
     }
 
-    /**
-     * This method is deprecated and unused. You should not call this method.
-     * <p>
-     * If you need to call the binding, use {@link RecyclerView.Adapter#onBindViewHolder(ViewHolder,
-     * int, List)} instead.
-     * </p>
-     *
-     * @param holder The ViewHolder which should be updated to represent the contents of the
-     * item at the given position in the data set.
-     * @param position The position of the item within the adapter's data set.
-     * @throws IllegalAccessError By default.
-     * @deprecated Call {@link RecyclerView.Adapter#onBindViewHolder(ViewHolder, int, List)}
-     * instead.
-     */
     @Override
     public final void onBindViewHolder(ViewHolder holder, int position) {
         BaseViewHolder baseViewHolder = (BaseViewHolder) holder;
@@ -184,6 +150,7 @@ public abstract class MultiTypeAdapter<T extends Filter, K> extends RecyclerView
         baseViewHolder.setCheckBox(getCheckBox());
         baseViewHolder.setData(items.get(position));
         baseViewHolder.setOnItemClickListener(mListener);
+        baseViewHolder.setSelectType(mSelectType);
     }
 
     protected List<T> getFilterItems(List<T> items) {
@@ -194,7 +161,7 @@ public abstract class MultiTypeAdapter<T extends Filter, K> extends RecyclerView
                 int type = item.filter();
                 if (type != Filter.NOT_SHOW) {
                     data.add(item);
-                    if (type != Filter.NO_CHOICE) {
+                    if (type != Filter.NO_CHOICE&&type!=Filter.TITLE_NO_CHOICE) {
                         mSelectionList.add(item);
                     }
                 }

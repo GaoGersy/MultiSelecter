@@ -1,4 +1,4 @@
-package com.gersion.library.smartrecycleview.ptr2;
+package com.gersion.library.view.smartrecycleview.ptr2;
 
 public interface OnRetryListener {
 	void onRefreshRetry();

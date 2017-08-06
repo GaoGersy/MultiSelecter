@@ -1,24 +1,19 @@
-package com.gersion.library.fragment;
+package com.gersion.library.view;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
-import android.app.Activity;
 import android.content.Context;
-import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
+import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -42,17 +37,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by gersy on 2017/7/25.
+ * Created by gersy on 2017/8/6.
  */
 
-public class SelectionFragment extends Fragment {
-    //单选
-    public static final int SINGLE_SELECT = 100;
-    //多选
-    public static final int MULTI_SELECT = 101;
+public class MultiSelectView extends FrameLayout {
 
-    private Activity activity;
-    private View mView;
     private LinearLayout mContainer;
     private RecyclerView mIconRecyclerView;
     private EditText mEtSearch;
@@ -77,20 +66,31 @@ public class SelectionFragment extends Fragment {
     private List<FloatImgBean> mImagePool = new ArrayList<>();
     private List<Filter> mMatchList = new ArrayList<>();
     private View mPlaceHolder;
-    private int selectType = SelectionFragment.MULTI_SELECT;
+    private int mSelectType;
+    private Context mContext;
+    private View mView;
+    private int mItemWidth;
+    private int mWidth5;
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        this.activity = (Activity) context;
+    public MultiSelectView(@NonNull Context context) {
+        this(context,null);
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        mView = inflater.inflate(R.layout.fragment_selection, container, false);
+    public MultiSelectView(@NonNull Context context, @Nullable AttributeSet attrs) {
+        super(context, attrs);
+        mContext = context;
+        mView = LayoutInflater.from(context).inflate(R.layout.fragment_selection, this);
+    }
+
+    public void init() {
         initView();
+        initData();
         initListener();
-        return mView;
+    }
+
+    private void initData() {
+        mItemWidth = SizeUtils.dp2px(mContext, 45);
+        mWidth5 = SizeUtils.dp2px(mContext, 5);
     }
 
     protected <T extends View> T findView(int id) {
@@ -111,10 +111,14 @@ public class SelectionFragment extends Fragment {
         mFlContainer = findView(R.id.fl_container);
         mPlaceHolder = findView(R.id.placeholder);
 
-//        int[] location = new int[2];
-//        mContainer.getLocationOnScreen(location);
-//        mStartX = location[0];
-//        mStartY = location[1];
+        initFloatPool();
+
+        int screenWidth = ScreenUtils.getScreenWidth(mContext);
+        mMaxWidth = screenWidth * 2 / 3;
+        initRecyclerView();
+    }
+
+    private void initFloatPool() {
         FloatImgBean bean1 = new FloatImgBean();
         bean1.mImageView = mFloatImg_1;
         FloatImgBean bean2 = new FloatImgBean();
@@ -124,10 +128,6 @@ public class SelectionFragment extends Fragment {
         mImagePool.add(bean1);
         mImagePool.add(bean2);
         mImagePool.add(bean3);
-
-        int screenWidth = ScreenUtils.getScreenWidth(activity);
-        mMaxWidth = screenWidth * 2 / 3;
-        initRecyclerView();
     }
 
     private FloatImgBean getFloatImg() {
@@ -141,7 +141,7 @@ public class SelectionFragment extends Fragment {
 
     private void initRecyclerView() {
         mIconListRvAdapter = new SelectIconRvAdapter();
-        mLinearLayoutManager = new LinearLayoutManager(activity);
+        mLinearLayoutManager = new LinearLayoutManager(mContext);
         mLinearLayoutManager.setAutoMeasureEnabled(true);
 
         mLinearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
@@ -178,8 +178,6 @@ public class SelectionFragment extends Fragment {
         mStartY = locations[1];
     }
 
-    int count = 0;
-
     public void getSourcePoint(final View itemView, final Filter item) {
         getParentPoint();
         itemView.setClickable(false);
@@ -187,28 +185,24 @@ public class SelectionFragment extends Fragment {
         floatImg.mImageView.setVisibility(View.VISIBLE);
         mPlaceHolder.setVisibility(View.VISIBLE);
         floatImg.mImageView.setImageResource(item.getImageResource());
-        MultiSelecter.mImageLoader.showImage(getActivity(),item.getImageUrl(),floatImg.mImageView);
+        MultiSelecter.mImageLoader.showImage(mContext,item.getImageUrl(),floatImg.mImageView);
         floatImg.mIsAnimator = true;
-        int[] targetCoordinates = getTarget(mIconRecyclerView, count++);
-        Log.d("haha", "调用结果 x = " + targetCoordinates[0] + ", y = " + targetCoordinates[1]);
 
         int[] sourceLocation = new int[2];
         mSourceView.getLocationOnScreen(sourceLocation);
         int startX = sourceLocation[0];
         int startY = sourceLocation[1];
 
-//        ViewGroup parent = (ViewGroup) mSourceView.getParent();
-//        parent.removeView(mSourceView);
-//        mFlContainer.addView(mSourceView);
-
         int[] tagetLocation = new int[2];
         mIconRecyclerView.getLocationOnScreen(tagetLocation);
-        int endX = tagetLocation[0] + mIconRecyclerView.getWidth() + SizeUtils.dp2px(activity, 5);
-        int endY = tagetLocation[1] + SizeUtils.dp2px(activity, 5) * 2;
-//        if (endX >= mMaxWidth) {
-//            endX = mMaxWidth - SizeUtils.dp2px(activity, 40);
-//        }
+        int endX = tagetLocation[0] + mIconRecyclerView.getWidth() + mWidth5;
 
+        int endY = tagetLocation[1] + mWidth5 * 2;
+
+        animator(itemView, item, floatImg, startX, startY, endX, endY);
+    }
+
+    private void animator(final View itemView, final Filter item, final FloatImgBean floatImg, int startX, int startY, int endX, int endY) {
         ObjectAnimator animatorX = ObjectAnimator.ofFloat(floatImg.mImageView, "translationX", startX - mStartX, endX - mStartX);
         ObjectAnimator animatorY = ObjectAnimator.ofFloat(floatImg.mImageView, "translationY", startY - mStartY, endY - mStartY);
         AnimatorSet animatorSet = new AnimatorSet();
@@ -221,7 +215,6 @@ public class SelectionFragment extends Fragment {
             public void onAnimationEnd(Animator animation) {
                 floatImg.mImageView.setVisibility(View.GONE);
                 floatImg.mIsAnimator = false;
-//                mIconListRvAdapter.showLastItem();
                 mIconListRvAdapter.add(item);
                 mIconRecyclerView.smoothScrollToPosition(mIconListRvAdapter.getItemCount());
                 mPlaceHolder.setVisibility(View.GONE);
@@ -231,100 +224,10 @@ public class SelectionFragment extends Fragment {
         });
     }
 
-    private void animate(RecyclerView sourceRecycler, RecyclerView targetRecycler, int position) {
-        View view = sourceRecycler.getLayoutManager().findViewByPosition(position);
-        if (view == null) {
-            return;
-        }
-        getParentPoint();
-
-        mFloatImg_1.setPivotX(mFloatImg_1.getWidth() / 2);
-        mFloatImg_1.setPivotY(mFloatImg_1.getHeight() / 2);
-        mFloatImg_1.setVisibility(View.VISIBLE);
-        int[] initial = new int[2];
-        view.getLocationOnScreen(initial);
-
-        sourceRecycler.getLayoutManager().removeViewAt(position);
-
-        BaseMultiAdapter sourceRecyclerAdapter = (BaseMultiAdapter) sourceRecycler.getAdapter();
-        Filter removedItem = sourceRecyclerAdapter.getItem(position);
-
-        int width = view.getWidth();
-//        view.removeFromParent();
-//        parent.addView(view)
-//        view.layoutParams = view.layoutParams.apply {
-//            this.width = width
-//        }
-        int[] container = new int[2];
-        sourceRecycler.getLocationOnScreen(container);
-
-        view.setTranslationX(initial[0] + 0.5f);
-        view.setTranslationY((initial[1] - container[1]) + 0.5f);
-
-//        @Suppress("UNCHECKED_CAST")
-        SelectIconRvAdapter adapter = (SelectIconRvAdapter) targetRecycler.getAdapter();
-        int newPos = adapter.add(removedItem);
-        int[] targetCoordinates = getTarget(targetRecycler, newPos);
-
-
-        float targetX = (targetCoordinates[0] - initial[0]) + 0.5f;
-        float targetY = (targetCoordinates[1] - initial[1]) + 0.5f;
-        long duration = calcDuration(targetX, targetY);
-
-        animateTranslation(mFloatImg_1, targetX, targetY, duration);
-
-//        ObjectAnimator animatorX = ObjectAnimator.ofFloat(mFloatImg_1, "translationX", initial[0], targetCoordinates[0]);
-//        ObjectAnimator animatorY = ObjectAnimator.ofFloat(mFloatImg_1, "translationY", initial[1] - mStartY, targetCoordinates[1] - mStartY);
-//        AnimatorSet animatorSet = new AnimatorSet();
-//        animatorSet.playTogether(animatorX, animatorY);
-//        animatorSet.setDuration(500);
-//        animatorSet.start();
-
-//        animateAlpha(removedItem, targetRecycler, view, duration)
-//        animateTranslation(view, deltaX = targetX, deltaY = targetY, duration = duration)
-    }
-
-    private void animateTranslation(View view, float deltaX, float deltaY, Long duration) {
-        view.animate().setDuration(duration)
-                .setInterpolator(new OvershootInterpolator(1.1f))
-                .translationXBy(deltaX)
-                .translationYBy(deltaY)
-                .start();
-    }
 
     private long calcDuration(float targetX, float targetY) {
         return (long) (Math.sqrt((targetX * targetX + targetY * targetY)) * 0.7f);
     }
-
-    private int[] getTarget(RecyclerView targetRecycler, int index) {
-        int prev = Math.max(0, index - 0);
-        RecyclerView.ViewHolder viewHolderForAdapterPosition = targetRecycler.findViewHolderForAdapterPosition(prev);
-        View targetView = viewHolderForAdapterPosition == null ? null : viewHolderForAdapterPosition.itemView;
-        if (targetView == null) {
-            viewHolderForAdapterPosition = targetRecycler.findViewHolderForAdapterPosition(prev - 1);
-            targetView = viewHolderForAdapterPosition == null ? null : viewHolderForAdapterPosition.itemView;
-            if (targetView != null) {
-                int[] targetCoordinates = new int[2];
-                targetView.getLocationOnScreen(targetCoordinates);
-                targetCoordinates[1] += targetView.getHeight();
-                Log.d("haha", "targetView !=null x = " + targetCoordinates[0] + ", y = " + targetCoordinates[1]);
-                return targetCoordinates;
-            }
-        }
-
-        if (targetView == null) {
-            int[] targetCoordinates = new int[2];
-            targetRecycler.getLocationOnScreen(targetCoordinates);
-            if (targetRecycler.getChildCount() != 0) {
-                targetCoordinates[1] += targetRecycler.getHeight();
-            }
-            Log.d("haha", "targetView == null x = " + targetCoordinates[0] + ", y = " + targetCoordinates[1]);
-            return targetCoordinates;
-        }
-
-        return new int[]{0, 0};
-    }
-
 
     public void handleData(List data) {
         mData = data;
@@ -352,7 +255,7 @@ public class SelectionFragment extends Fragment {
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, Filter item, boolean isSelected) {
-                if (selectType == MULTI_SELECT) {
+                if (mSelectType == MultiSelecter.MULTI_SELECT) {
                     if (isSelected) {
                         mSourceView = v.findViewById(R.id.iv_icon);
                         getSourcePoint(v, item);
@@ -424,7 +327,8 @@ public class SelectionFragment extends Fragment {
         } else {
             mTvConfirm.setEnabled(true);
         }
-        int width = SizeUtils.dp2px(activity, 45) * size;
+
+        int width = mItemWidth * size;
         if (width > mMaxWidth) {
             width = mMaxWidth;
         }
@@ -433,27 +337,36 @@ public class SelectionFragment extends Fragment {
         mContainer.requestLayout();
     }
 
-    public static class Builder {
-        private FragmentActivity mActivity;
-        private BaseMultiAdapter mMultiAdapter;
-        private TypePool mTypePool;
-
-        public Builder(FragmentActivity activity, BaseMultiAdapter multiAdapter, TypePool typePool) {
-            mActivity = activity;
-            mMultiAdapter = multiAdapter;
-            mTypePool = typePool;
-        }
-
-        public SelectionFragment build() {
-            SelectionFragment selectionFragment = new SelectionFragment();
-            FragmentManager supportFragmentManager = mActivity.getSupportFragmentManager();
-            FragmentTransaction fragmentTransaction = supportFragmentManager.beginTransaction();
-            fragmentTransaction.add(R.id.container, selectionFragment);
-            fragmentTransaction.commit();
-            selectionFragment.setTypePool(mTypePool);
-            selectionFragment.setAdapter(mMultiAdapter);
-            return selectionFragment;
-        }
+    public void setSelectType(int selectType){
+        mSelectType = selectType;
+        mAdapter.setSelectType(selectType);
     }
 
+    public static class Builder {
+        private BaseMultiAdapter mMultiAdapter;
+        private TypePool mTypePool;
+        private Context mContext;
+
+        public Builder(Context context) {
+            mContext = context;
+        }
+
+        public Builder setTypePool(TypePool typePool) {
+            mTypePool = typePool;
+            return this;
+        }
+
+        public Builder setMultiAdapter(BaseMultiAdapter multiAdapter) {
+            mMultiAdapter = multiAdapter;
+            return this;
+        }
+
+        public MultiSelectView build() {
+            MultiSelectView multiSelectView = new MultiSelectView(mContext);
+            multiSelectView.setAdapter(this.mMultiAdapter);
+            multiSelectView.setTypePool(mTypePool);
+            multiSelectView.init();
+            return multiSelectView;
+        }
+    }
 }
