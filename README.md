@@ -360,6 +360,9 @@ public class GlideImageLoader implements IImageLoader {
 哦了，好累，小猿来了个葛优躺....
 
 用到的开源项目：
+
 **[AutoRecycleView](https://github.com/GaoGersy/AutoRecycleView)**：自动维护下拉刷新和上拉加载更多
+
 **[SimpleMutiTypeAdapter](https://github.com/GaoGersy/SimpleMutiTypeAdapter)** ：使用起来很简单的RecyclerView多条目
+
 没错，都是小猿之前为了应付需求改动写的。
