@@ -89,6 +89,8 @@ public class MultiSelectView extends FrameLayout {
     }
 
     private void initData() {
+        int screenWidth = ScreenUtils.getScreenWidth(mContext);
+        mMaxWidth = screenWidth * 2 / 3;
         mItemWidth = SizeUtils.dp2px(mContext, 45);
         mWidth5 = SizeUtils.dp2px(mContext, 5);
     }
@@ -113,8 +115,6 @@ public class MultiSelectView extends FrameLayout {
 
         initFloatPool();
 
-        int screenWidth = ScreenUtils.getScreenWidth(mContext);
-        mMaxWidth = screenWidth * 2 / 3;
         initRecyclerView();
     }
 
@@ -178,7 +178,7 @@ public class MultiSelectView extends FrameLayout {
         mStartY = locations[1];
     }
 
-    public void getSourcePoint(final View itemView, final Filter item) {
+    public void translationView(final View itemView, final Filter item) {
         getParentPoint();
         itemView.setClickable(false);
         final FloatImgBean floatImg = getFloatImg();
@@ -258,7 +258,7 @@ public class MultiSelectView extends FrameLayout {
                 if (mSelectType == MultiSelecter.MULTI_SELECT) {
                     if (isSelected) {
                         mSourceView = v.findViewById(R.id.iv_icon);
-                        getSourcePoint(v, item);
+                        translationView(v, item);
 
                     } else {
                         mIconListRvAdapter.remove(item);

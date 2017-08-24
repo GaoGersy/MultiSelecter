@@ -21,15 +21,20 @@ public interface Filter {
     //不显示在列表
     int NOT_SHOW = 4;
 
+    //本地图片地址
     int getImageResource();
 
+    //网络图片url
     String getImageUrl();
 
+    //返回当前条目的状态，就是上面定义的那些个常量，返回值会在BaseViewHolder里面用到
     int filter();
 
+    //是否是选中状态
     boolean isSelected();
 
     void setSelected(boolean isSelected);
 
+    //是否匹配搜索关键字，用来处理搜索的，如果不要搜索功能，可以不用处理
     boolean isMatch(String condition);
 }

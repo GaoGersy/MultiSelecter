@@ -140,9 +140,7 @@ public class BaseViewHolder<T extends Filter> extends RecyclerView.ViewHolder {
 
     public void onNoChoice() {
         if (mCheckBox != null) {
-//            mCheckBox.setChecked(false);
             mCheckBox.setBackgroundResource(noChoiceBackgroundResource);
-
             itemView.setOnClickListener(null);
         }
     }
