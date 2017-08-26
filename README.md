@@ -1,5 +1,20 @@
 ###### 先上图，看看今天开什么车，坐稳咯。拖拉机即将超速行使，请系好安全带！
 ![MultiSelector.gif](http://upload-images.jianshu.io/upload_images/2673171-568b55a3bb4190c9.gif?imageMogr2/auto-orient/strip)
+
+##### 如何使用？
+在项目级build.gradle加入
+```
+allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+```
+在module级build.gradle加入
+```
+compile 'com.github.GaoGersy:MultiSelecter:1.0.1'
+```
 >先来分析一下android中会遇到哪些选择方面的需求：
   1. 单选--这个就不啰嗦了
   2. 多选：
